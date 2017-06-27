@@ -113,11 +113,11 @@ def drn_unit(data, num_filter, dilate, stride, dim_match, name, bottle_neck=True
     else:
         bn1 = mx.sym.BatchNorm(data=data, fix_gamma=False, momentum=bn_mom, eps=2e-5, name=name + '_bn1')
         act1 = mx.sym.Activation(data=bn1, act_type='relu', name=name + '_relu1')
-        conv1 = mx.sym.Convolution(data=act1, num_filter=num_filter, kernel=(3,3), stride=stride, pad=(1,1),
+        conv1 = mx.sym.Convolution(data=act1, num_filter=num_filter, kernel=(3,3), stride=stride, pad=dilate,
                                       no_bias=True, workspace=workspace, name=name + '_conv1', dilate=dilate)
         bn2 = mx.sym.BatchNorm(data=conv1, fix_gamma=False, momentum=bn_mom, eps=2e-5, name=name + '_bn2')
         act2 = mx.sym.Activation(data=bn2, act_type='relu', name=name + '_relu2')
-        conv2 = mx.sym.Convolution(data=act2, num_filter=num_filter, kernel=(3,3), stride=(1,1), pad=(1,1),
+        conv2 = mx.sym.Convolution(data=act2, num_filter=num_filter, kernel=(3,3), stride=(1,1), pad=dilate,
                                       no_bias=True, workspace=workspace, name=name + '_conv2', dilate=dilate)
         if dim_match:
             shortcut = data
@@ -167,28 +167,23 @@ def drn(units, num_stages, filter_list, num_classes, image_shape, bottle_neck=Tr
                              name='stage%d_unit%d' % (i + 1, 1), bottle_neck=bottle_neck, workspace=workspace,
                              memonger=memonger)
         for j in range(units[i]-1):
-            body = residual_unit(body, filter_list[i+1], (1,1), True, name='stage%d_unit%d' % (i + 1, j + 2),
+            body = residual_unit(body, filter_list[i+1], (1, 1), True, name='stage%d_unit%d' % (i + 1, j + 2),
                                  bottle_neck=bottle_neck, workspace=workspace, memonger=memonger)
 
     # stages: conv4 - conv5, using dilated unit
     stage_dilated = [(2, 2), (4, 4)]
     for i in range(2, 4):
-        body = drn_unit(body, filter_list[i+1], (2, 2), (1 if i==0 else 2, 1 if i==0 else 2), False,
+        body = drn_unit(body, filter_list[i+1], (1 if i==2 else 2, ) * 2, (1, 1), False,
                              name='stage%d_unit%d' % (i + 1, 1), bottle_neck=bottle_neck, workspace=workspace,
                              memonger=memonger)
         for j in range(units[i]-1):
-            # for the final resnet unit
-            if j == 0:
-                body = drn_unit(body, filter_list[i+1], map(lambda x: x/2, stage_dilated[i==3]), (1,1), True, name='stage%d_unit%d' % (i + 1, j + 2),
-                                    bottle_neck=bottle_neck, workspace=workspace, memonger=memonger)
-            else:  
-                body = drn_unit(body, filter_list[i+1], stage_dilated[i==3], (1,1), True, name='stage%d_unit%d' % (i + 1, j + 2),
-                                    bottle_neck=bottle_neck, workspace=workspace, memonger=memonger)
+            body = drn_unit(body, filter_list[i+1], stage_dilated[i==3], (1, 1), True, name='stage%d_unit%d' % (i + 1, j + 2),
+                                bottle_neck=bottle_neck, workspace=workspace, memonger=memonger)
 
     bn1 = mx.sym.BatchNorm(data=body, fix_gamma=False, eps=2e-5, momentum=bn_mom, name='bn1')
     relu1 = mx.sym.Activation(data=bn1, act_type='relu', name='relu1')
     # Although kernel is not used here when global_pool=True, we should put one
-    pool1 = mx.symbol.Pooling(data=relu1, global_pool=True, kernel=(7, 7), pool_type='avg', name='pool1')
+    pool1 = mx.symbol.Pooling(data=relu1, global_pool=True, kernel=(28, 28), pool_type='avg', name='pool1')
     flat = mx.symbol.Flatten(data=pool1)
     fc1 = mx.symbol.FullyConnected(data=flat, num_hidden=num_classes, name='fc1')
     return mx.symbol.SoftmaxOutput(data=fc1, name='softmax')
