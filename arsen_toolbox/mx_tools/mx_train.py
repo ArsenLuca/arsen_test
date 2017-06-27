@@ -4,7 +4,8 @@ import mxnet as mx
 import numpy as np
 from ..basic.log import set_logger
 
-def mx_train(log_file_name, train_num, sym, arg_params, aux_params, train_dataiter, val_dataiter, devs, save_model_prefix, train_params):
+def mx_train(log_file_name, train_num, sym, arg_params, aux_params, 
+            train_dataiter, val_dataiter, devs, save_model_prefix, train_params):
     ''' Train CNN Network '''
 
     lr_factor_epoch = train_params.lr_factor_epoch
