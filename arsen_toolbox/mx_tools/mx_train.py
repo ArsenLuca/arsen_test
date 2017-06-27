@@ -2,13 +2,16 @@
 
 import mxnet as mx
 import numpy as np
+from ..basic.log import set_logger
 
-def mx_train(log_file_name, train_num, sym, arg_params, aux_params, train_dataiter, val_dataiter, batch_size, devs, save_model_prefix, cnn_params, metric='acc', fixed_param_names=None):
+def mx_train(log_file_name, train_num, sym, arg_params, aux_params, train_dataiter, val_dataiter, devs, save_model_prefix, train_params):
     ''' Train CNN Network '''
 
-    lr_factor_epoch = cnn_params.lr_factor_epoch
-    num_epoch = cnn_params.num_epoch
-
+    lr_factor_epoch = train_params.lr_factor_epoch
+    num_epoch = train_params.num_epoch
+    batch_size = train_params.batch_size
+    metric = train_params.metric
+    fixed_param_names = train_params.fixed_param_names
     ### Set Module ###
 
     # set logger
@@ -26,19 +29,19 @@ def mx_train(log_file_name, train_num, sym, arg_params, aux_params, train_datait
         mod.set_params(arg_params, aux_params, allow_missing=True)
 
     # set checkpoints
-    check_each_epoch = min(cnn_params.check_each_epoch, num_epoch)
+    check_each_epoch = min(train_params.check_each_epoch, num_epoch)
     checkpoint = mx.callback.do_checkpoint(save_model_prefix, check_each_epoch)
 
     ### Set Optimizer ###
 
     # how to change lr
-    base_lr = cnn_params.base_lr
-    lr_factor = cnn_params.lr_factor
-    momentum = cnn_params.momentum
+    base_lr = train_params.base_lr
+    lr_factor = train_params.lr_factor
+    momentum = train_params.momentum
     batch_num = mx.nd.np.ceil(float(train_num) / batch_size)  # flipped
 
     # weight of regularization
-    wd = cnn_params.wd
+    wd = train_params.wd
 
     if isinstance(lr_factor_epoch, int):
         lr_scheduler = mx.lr_scheduler.FactorScheduler(
