@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import os
 import mxnet as mx
 
 def get_dataiter(train_rec_file, val_rec_file, batch_size=128, data_shape=(3, 224, 224)):
     """ get dataiter """
-    mean_file = "./data/imagenet_mean.bin"
+    mean_file = os.path.join(os.path.split(train_rec_file)[0], "imagenet_mean.bin")
 
     train_dataiter = mx.io.ImageRecordIter(
         path_imgrec         = train_rec_file,
