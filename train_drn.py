@@ -32,7 +32,7 @@ if __name__ == "__main__":
     val_lst_file = os.path.join(dataset_path, "data/val.lst")
     val_rec_file = os.path.join(dataset_path, "data/val_256_q90.1000.rec")
 
-    train_dataiter, val_dataiter = get_dataiter(train_rec_file, val_rec_file)
+    train_dataiter, val_dataiter = get_dataiter(train_rec_file, val_rec_file, batch_size=train_params.batch_size)
     devs = [mx.gpu(i) for i in range(4)]
 
     mx_train(log_file, len(open(train_lst_file).readlines()), drn_sym, \

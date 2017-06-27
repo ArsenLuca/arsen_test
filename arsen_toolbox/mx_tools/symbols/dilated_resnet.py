@@ -111,6 +111,7 @@ def drn_unit(data, num_filter, dilate, stride, dim_match, name, bottle_neck=True
             shortcut._set_attr(mirror_stage='True')
         return conv3 + shortcut
     else:
+        # NOTICE: pad == dilate
         bn1 = mx.sym.BatchNorm(data=data, fix_gamma=False, momentum=bn_mom, eps=2e-5, name=name + '_bn1')
         act1 = mx.sym.Activation(data=bn1, act_type='relu', name=name + '_relu1')
         conv1 = mx.sym.Convolution(data=act1, num_filter=num_filter, kernel=(3,3), stride=stride, pad=dilate,
