@@ -2,7 +2,7 @@
 """
     get drn symbols
 """
-
+import os
 import mxnet as mx
 
 from arsen_toolbox.file_tools.file_auto_name import get_file_name_by_time

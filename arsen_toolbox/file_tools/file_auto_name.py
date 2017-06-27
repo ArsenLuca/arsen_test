@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+import os
 import datetime
 
 def get_file_name_by_time(prefix="./", ext=""):
