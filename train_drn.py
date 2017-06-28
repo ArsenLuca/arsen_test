@@ -36,4 +36,4 @@ if __name__ == "__main__":
     devs = [mx.gpu(i) for i in range(4)]
 
     mx_train(log_file, len(open(train_lst_file).readlines()), drn_sym, \
-            None, None, train_dataiter, val_dataiter, devs, "../result/drn_18_imagenet", train_params)
+            None, None, train_dataiter, val_dataiter, devs, "./result/drn_18_imagenet", train_params)
