@@ -129,8 +129,8 @@ def drn_unit(data, num_filter, dilate, stride, dim_match, name, bottle_neck=True
             shortcut._set_attr(mirror_stage='True')
         return conv2 + shortcut
 
-def drn(units, num_stages, filter_list, num_classes, image_shape, bottle_neck=True, bn_mom=0.9, workspace=256, memonger=False):
-    """Return symbol of dilated resnet
+def drn_b(units, num_stages, filter_list, num_classes, image_shape, bottle_neck=True, bn_mom=0.9, workspace=256, memonger=False):
+    """Return symbol of dilated resnet-B
     Parameters
     ----------
     units : list
@@ -153,14 +153,20 @@ def drn(units, num_stages, filter_list, num_classes, image_shape, bottle_neck=Tr
     data = mx.sym.BatchNorm(data=data, fix_gamma=True, eps=2e-5, momentum=bn_mom, name='bn_data')
     (nchannel, height, width) = image_shape
     if height <= 32:            # such as cifar10
-        body = mx.sym.Convolution(data=data, num_filter=filter_list[0], kernel=(3, 3), stride=(1,1), pad=(1, 1),
+        body = mx.sym.Convolution(data=data, num_filter=filter_list[0]/4, kernel=(3, 3), stride=(1,1), pad=(1, 1),
                                   no_bias=True, name="conv0", workspace=workspace)
     else:                       # often expected to be 224 such as imagenet
-        body = mx.sym.Convolution(data=data, num_filter=filter_list[0], kernel=(7, 7), stride=(2,2), pad=(3, 3),
+        body = mx.sym.Convolution(data=data, num_filter=filter_list[0]/4, kernel=(7, 7), stride=(2,2), pad=(3, 3),
                                   no_bias=True, name="conv0", workspace=workspace)
         body = mx.sym.BatchNorm(data=body, fix_gamma=False, eps=2e-5, momentum=bn_mom, name='bn0')
         body = mx.sym.Activation(data=body, act_type='relu', name='relu0')
-        body = mx.symbol.Pooling(data=body, kernel=(3, 3), stride=(2,2), pad=(1,1), pool_type='max')
+
+        # for DRN-B, replace pooling with two resnet blocks(each with stride 2)
+        for i in range(2):
+            body = residual_unit(body, filter_list[0]/(2**(2-i)), (2, 2), False, name='stage0_unit%d' % i, 
+                                bottle_neck=bottle_neck, workspace=workspace, memonger=memonger)
+
+        # body = mx.symbol.Pooling(data=body, kernel=(3, 3), stride=(2,2), pad=(1,1), pool_type='max')
 
     # stages: conv1 - conv2, using resnet unit 
     for i in range(2):
@@ -180,6 +186,12 @@ def drn(units, num_stages, filter_list, num_classes, image_shape, bottle_neck=Tr
         for j in range(units[i]-1):
             body = drn_unit(body, filter_list[i+1], stage_dilated[i==3], (1, 1), True, name='stage%d_unit%d' % (i + 1, j + 2),
                                 bottle_neck=bottle_neck, workspace=workspace, memonger=memonger)
+
+    # stages: conv5 - conv6, using resnet unit
+    for i in range(4, 6):
+        body = residual_unit(body, filter_list[-1], (1, 1), False,
+                             name='stage%d_unit%d' % (i + 1, 1), bottle_neck=bottle_neck, workspace=workspace,
+                             memonger=memonger)
 
     bn1 = mx.sym.BatchNorm(data=body, fix_gamma=False, eps=2e-5, momentum=bn_mom, name='bn1')
     relu1 = mx.sym.Activation(data=bn1, act_type='relu', name='relu1')
@@ -234,7 +246,7 @@ def get_symbol(num_classes, num_layers, image_shape, conv_workspace=256, **kwarg
         else:
             raise ValueError("no experiments done on num_layers {}, you can do it yourself".format(num_layers))
 
-    return drn(units       = units,
+    return drn_b(units       = units,
                num_stages  = num_stages,
                filter_list = filter_list,
                num_classes = num_classes,
