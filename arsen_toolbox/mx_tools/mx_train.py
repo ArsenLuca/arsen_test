@@ -12,6 +12,7 @@ def mx_train(log_file_name, train_num, sym, arg_params, aux_params,
     num_epoch = train_params.num_epoch
     batch_size = train_params.batch_size
     metric = train_params.metric
+    frequent = train_params.frequent
     fixed_param_names = train_params.fixed_param_names
     ### Set Module ###
 
@@ -63,7 +64,7 @@ def mx_train(log_file_name, train_num, sym, arg_params, aux_params,
     ### Training the module ###
     mod.fit(train_dataiter, val_dataiter,
             num_epoch=num_epoch,
-            batch_end_callback=mx.callback.Speedometer(batch_size, 10),
+            batch_end_callback=mx.callback.Speedometer(batch_size, frequent),
             kvstore='device',
             optimizer=optimizer,
             epoch_end_callback=checkpoint,
