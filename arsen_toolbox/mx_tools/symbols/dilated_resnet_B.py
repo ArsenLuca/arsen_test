@@ -92,7 +92,7 @@ def drn_unit(data, num_filter, dilate, stride, dim_match, name, bottle_neck=True
         # the same as https://github.com/facebook/fb.resnet.torch#notes, a bit difference with origin paper
         bn1 = mx.sym.BatchNorm(data=data, fix_gamma=False, eps=2e-5, momentum=bn_mom, name=name + '_bn1')
         act1 = mx.sym.Activation(data=bn1, act_type='relu', name=name + '_relu1')
-        conv1 = mx.sym.Convolution(data=act1, num_filter=int(num_filter*0.25), kernel=(1,1), stride=(1,1), pad=(0,0),
+        conv1 = mx.sym.Convolution(data=act1, num_filter=int(num_filter*0.25), kernel=(1,1), stride=(1,1), pad=dilate,
                                    no_bias=True, workspace=workspace, name=name + '_conv1', dilate=dilate)
         bn2 = mx.sym.BatchNorm(data=conv1, fix_gamma=False, eps=2e-5, momentum=bn_mom, name=name + '_bn2')
         act2 = mx.sym.Activation(data=bn2, act_type='relu', name=name + '_relu2')
@@ -118,7 +118,7 @@ def drn_unit(data, num_filter, dilate, stride, dim_match, name, bottle_neck=True
                                       no_bias=True, workspace=workspace, name=name + '_conv1', dilate=dilate)
         bn2 = mx.sym.BatchNorm(data=conv1, fix_gamma=False, momentum=bn_mom, eps=2e-5, name=name + '_bn2')
         act2 = mx.sym.Activation(data=bn2, act_type='relu', name=name + '_relu2')
-        conv2 = mx.sym.Convolution(data=act2, num_filter=num_filter, kernel=(3,3), stride=(1,1), pad=dilate,
+        conv2 = mx.sym.Convolution(data=act2, num_filter=num_filter, kernel=(3,3), stride=(1,1),
                                       no_bias=True, workspace=workspace, name=name + '_conv2')
         if dim_match:
             shortcut = data
