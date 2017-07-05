@@ -49,7 +49,7 @@ if __name__ == "__main__":
                     "momentum": 0.9,  "wd": 1e-4, "batch_size": 256, \
                     "check_each_epoch": 10, "num_epoch": 120, \
                     "metric": ['acc', mx.metric.create('top_k_accuracy', top_k = 5)], "fixed_param_names": None, \
-                    'frequent': 100
+                    "frequent": 100
                     })
 
     log_file = get_file_name_by_time(prefix="./logs/", ext=".log")

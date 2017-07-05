@@ -97,11 +97,11 @@ def drn_unit(data, num_filter, dilate, stride, dim_match, name, bottle_neck=True
         bn2 = mx.sym.BatchNorm(data=conv1, fix_gamma=False, eps=2e-5, momentum=bn_mom, name=name + '_bn2')
         act2 = mx.sym.Activation(data=bn2, act_type='relu', name=name + '_relu2')
         conv2 = mx.sym.Convolution(data=act2, num_filter=int(num_filter*0.25), kernel=(3,3), stride=stride, pad=(1,1),
-                                   no_bias=True, workspace=workspace, name=name + '_conv2', dilate=dilate)
+                                   no_bias=True, workspace=workspace, name=name + '_conv2')
         bn3 = mx.sym.BatchNorm(data=conv2, fix_gamma=False, eps=2e-5, momentum=bn_mom, name=name + '_bn3')
         act3 = mx.sym.Activation(data=bn3, act_type='relu', name=name + '_relu3')
         conv3 = mx.sym.Convolution(data=act3, num_filter=num_filter, kernel=(1,1), stride=(1,1), pad=(0,0), no_bias=True,
-                                   workspace=workspace, name=name + '_conv3', dilate=dilate)
+                                   workspace=workspace, name=name + '_conv3')
         if dim_match:
             shortcut = data
         else:
@@ -119,7 +119,7 @@ def drn_unit(data, num_filter, dilate, stride, dim_match, name, bottle_neck=True
         bn2 = mx.sym.BatchNorm(data=conv1, fix_gamma=False, momentum=bn_mom, eps=2e-5, name=name + '_bn2')
         act2 = mx.sym.Activation(data=bn2, act_type='relu', name=name + '_relu2')
         conv2 = mx.sym.Convolution(data=act2, num_filter=num_filter, kernel=(3,3), stride=(1,1), pad=dilate,
-                                      no_bias=True, workspace=workspace, name=name + '_conv2', dilate=dilate)
+                                      no_bias=True, workspace=workspace, name=name + '_conv2')
         if dim_match:
             shortcut = data
         else:
