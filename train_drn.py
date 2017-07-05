@@ -3,6 +3,7 @@
     get drn symbols
 """
 import os
+import argparse
 import mxnet as mx
 from importlib import import_module
 
@@ -28,6 +29,8 @@ def parse_args():
                         help="network to be trained")
     parser.add_argument('--dataset', type=str, default="imagenet", \
                         help="network to be trained")
+    args = parser.parse_args()
+    return args
 
 if __name__ == "__main__":
     """ Main for training """
