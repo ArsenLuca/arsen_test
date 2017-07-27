@@ -51,8 +51,11 @@ def mx_imagely_predict(img_list, mod, batch_size, val_label):
         labels = np.array([val_label[j] for j in idx])
 
         for pred_label, label in zip(pred_labels, labels):
-            acc_top5 += 1.0 if label in pred_label[-5:]
-            acc += 1.0 if label == pred_label[-1]
+            top5_labels = pred_label[-5:]
+            if label in top5_labels:
+                acc_top5 += 1.0 
+            if label == pred_label[-1]:
+                acc += 1.0 
 
         total += len(idx)
         print('batch %d, time %f sec'%(i, time.time() - tic))
@@ -77,11 +80,15 @@ def mx_iterly_predict(val_dataiter, mod, batch_size):
         labels = batch.label[0].asnumpy().astype('int32')[0:pred_labels.shape[0]]
 
         for pred_label, label in zip(pred_labels, labels):
-            acc_top5 += 1.0 if label in pred_label[-5:]
-            acc += 1.0 if label == pred_label[-1]
+            top5_labels = pred_label[-5:]
+            top1_label = pred_label[-1]
+            if label in top5_labels:
+                acc_top5 += 1.0 
+            if label == top1_label:
+                acc += 1.0 
             
         total += preds[0].shape[0]
-        print('batch %d, time %f sec'%(i, time.time() - tic))
+        print('batch %d, time %f sec'%(i_batch, time.time() - tic))
 
     print('Top 1 accuracy: %f'%(acc/total))
     print('Top 5 accuracy: %f'%(acc_top5/total))
@@ -93,7 +100,7 @@ def mx_imagely_load_predict(img_folder, checkpoint_name, epoch, batch_size, val_
     mod = mx_load_module(batch_size, checkpoint_name, epoch, context)
     return mx_imagely_predict(get_img_list(img_folder), mod, batch_size, val_label)
 
-def mx_iterly_predict(val_dataiter, checkpoint_name, epoch, batch_size, context=mx.gpu()):
+def mx_iterly_load_predict(val_dataiter, checkpoint_name, epoch, batch_size, context=mx.gpu()):
     """ load dataiter and predict """
     mod = mx_load_module(batch_size, checkpoint_name, epoch, context)
-    retirm mx_iterly_predict(val_dataiter, mod, batch_size)
+    return mx_iterly_predict(val_dataiter, mod, batch_size)
